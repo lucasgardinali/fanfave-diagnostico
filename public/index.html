@@ -6,217 +6,232 @@
 <title>Diagnóstico de Fidelização — Fan Fave</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F5F6FA; color: #1A1A2E; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
-  .card { background: white; border-radius: 16px; padding: 2rem; max-width: 560px; width: 100%; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F0F2FA; color: #1A1A2E; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .card { background: white; border-radius: 20px; padding: 2rem; max-width: 580px; width: 100%; box-shadow: 0 4px 24px rgba(26,62,232,0.08); }
   .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #EEEEEE; }
-  .brand { font-size: 11px; font-weight: 600; color: #1A3EE8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
-  .title { font-size: 22px; font-weight: 600; color: #1A1A2E; margin-bottom: 0.4rem; }
-  .subtitle { font-size: 14px; color: #666; line-height: 1.6; }
-  .progress-bar { height: 4px; background: #EEEEEE; border-radius: 2px; margin-bottom: 2rem; }
-  .progress-fill { height: 100%; background: #1A3EE8; border-radius: 2px; transition: width 0.4s ease; }
+  .logo { height: 28px; margin-bottom: 1.25rem; }
+  .title { font-size: 22px; font-weight: 700; color: #1A1A2E; margin-bottom: 0.4rem; }
+  .subtitle { font-size: 14px; color: #777; line-height: 1.6; }
+  .progress-wrap { margin-bottom: 2rem; }
+  .progress-bar { height: 4px; background: #EEEEEE; border-radius: 2px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #1A3EE8, #4DB8E8); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-label { font-size: 11px; color: #AAA; margin-top: 6px; text-align: right; }
   .step { display: none; }
   .step.active { display: block; }
-  .step-label { font-size: 12px; color: #999; margin-bottom: 0.5rem; }
-  .q-text { font-size: 18px; font-weight: 600; color: #1A1A2E; line-height: 1.4; margin-bottom: 0.3rem; }
+  .step-label { font-size: 11px; color: #AAA; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .q-text { font-size: 18px; font-weight: 700; color: #1A1A2E; line-height: 1.4; margin-bottom: 0.3rem; }
   .q-hint { font-size: 13px; color: #888; margin-bottom: 1.25rem; line-height: 1.5; }
   .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
-  .opt { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1.5px solid #EEEEEE; border-radius: 10px; cursor: pointer; transition: all 0.15s; background: white; }
+  .opt { display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px; border: 1.5px solid #E8E8E8; border-radius: 12px; cursor: pointer; transition: all 0.15s; background: white; }
   .opt:hover { border-color: #1A3EE8; background: #F0F3FF; }
   .opt.selected { border-color: #1A3EE8; background: #F0F3FF; }
   .opt-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #DDD; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .opt.selected .opt-radio { border-color: #1A3EE8; background: #1A3EE8; }
   .opt.selected .opt-radio::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: white; }
   .opt-text { font-size: 14px; color: #1A1A2E; line-height: 1.5; font-weight: 500; }
-  .opt-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .opt-sub { font-size: 12px; color: #999; margin-top: 2px; font-weight: 400; }
+  .textarea-field { width: 100%; border: 1.5px solid #E8E8E8; border-radius: 12px; padding: 14px 16px; font-size: 14px; color: #1A1A2E; font-family: inherit; resize: vertical; min-height: 110px; outline: none; line-height: 1.6; margin-bottom: 1.5rem; }
+  .textarea-field:focus { border-color: #1A3EE8; }
+  .textarea-field::placeholder { color: #BBB; }
   .nav { display: flex; gap: 10px; }
-  .btn-back { background: none; border: 1.5px solid #DDD; border-radius: 10px; padding: 12px 20px; font-size: 14px; color: #666; cursor: pointer; font-weight: 500; }
-  .btn-back:hover { background: #F5F5F5; }
-  .btn-next { background: #1A3EE8; border: none; border-radius: 10px; padding: 12px 28px; font-size: 14px; font-weight: 600; color: white; cursor: pointer; flex: 1; transition: opacity 0.15s; }
+  .btn-back { background: none; border: 1.5px solid #DDD; border-radius: 12px; padding: 13px 22px; font-size: 14px; color: #888; cursor: pointer; font-weight: 500; font-family: inherit; transition: all 0.15s; }
+  .btn-back:hover { background: #F5F5F5; border-color: #BBB; }
+  .btn-next { background: #1A3EE8; border: none; border-radius: 12px; padding: 13px 28px; font-size: 14px; font-weight: 600; color: white; cursor: pointer; flex: 1; transition: all 0.15s; font-family: inherit; }
   .btn-next:disabled { opacity: 0.3; cursor: not-allowed; }
-  .btn-next:not(:disabled):hover { opacity: 0.88; }
+  .btn-next:not(:disabled):hover { background: #1530C0; }
   .contact-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem; }
   .field-group { display: flex; flex-direction: column; gap: 6px; }
-  .field-label { font-size: 13px; color: #555; font-weight: 500; }
-  .field-input { padding: 11px 14px; border: 1.5px solid #DDD; border-radius: 10px; font-size: 14px; color: #1A1A2E; background: white; outline: none; width: 100%; font-family: inherit; }
+  .field-label { font-size: 13px; color: #555; font-weight: 600; }
+  .field-input { padding: 13px 16px; border: 1.5px solid #E8E8E8; border-radius: 12px; font-size: 14px; color: #1A1A2E; background: white; outline: none; width: 100%; font-family: inherit; transition: border-color 0.15s; }
   .field-input:focus { border-color: #1A3EE8; }
-  .result-box { background: #F5F6FA; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-  .spinner { width: 36px; height: 36px; border: 3px solid #DDD; border-top-color: #1A3EE8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  .field-input::placeholder { color: #BBB; }
+  .result-wrap { margin-bottom: 1rem; }
+  .loading-box { text-align: center; padding: 3rem 1rem; }
+  .spinner { width: 40px; height: 40px; border: 3px solid #E8E8E8; border-top-color: #1A3EE8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 14px; color: #888; text-align: center; }
-  .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
-  .score-num { font-size: 32px; font-weight: 700; color: #1A3EE8; }
-  .score-lbl { font-size: 13px; color: #888; line-height: 1.4; }
-  .diag-nome { font-size: 13px; color: #888; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #DDD; }
-  .diag-body { font-size: 14px; color: #1A1A2E; line-height: 1.8; white-space: pre-wrap; }
-  .wpp-box { background: #F5F6FA; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-  .wpp-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; font-weight: 600; }
-  .wpp-msg { font-size: 13px; color: #1A1A2E; line-height: 1.7; white-space: pre-wrap; background: white; padding: 12px; border-radius: 8px; border: 1px solid #EEE; font-family: monospace; }
-  .copy-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px solid #DDD; border-radius: 8px; padding: 8px 16px; font-size: 13px; color: #555; cursor: pointer; font-family: inherit; margin-bottom: 1rem; }
+  .loading-text { font-size: 14px; color: #999; }
+  .loading-sub { font-size: 12px; color: #BBB; margin-top: 4px; }
+  .diag-card { background: #F7F8FF; border-radius: 16px; padding: 1.75rem; border: 1px solid #E0E6FF; }
+  .diag-score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #E0E6FF; }
+  .score-circle { width: 64px; height: 64px; border-radius: 50%; background: #1A3EE8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .score-num { font-size: 20px; font-weight: 800; color: white; }
+  .score-info { flex: 1; }
+  .score-title { font-size: 13px; font-weight: 600; color: #1A3EE8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .score-nome { font-size: 13px; color: #888; }
+  .diag-acao { font-size: 13px; font-weight: 700; color: #1A3EE8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; margin-top: 1.25rem; }
+  .diag-acao-text { font-size: 14px; color: #1A1A2E; font-weight: 600; line-height: 1.5; margin-bottom: 1.25rem; padding: 12px 16px; background: white; border-radius: 10px; border-left: 3px solid #F5A623; }
+  .diag-body { font-size: 14px; color: #333; line-height: 1.85; white-space: pre-wrap; }
+  .error-box { background: #FFF0F0; border-radius: 12px; padding: 1.25rem; font-size: 14px; color: #CC0000; line-height: 1.6; border: 1px solid #FFD0D0; }
+  .copy-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: none; border: 1.5px solid #DDD; border-radius: 12px; padding: 11px 20px; font-size: 13px; color: #666; cursor: pointer; font-family: inherit; font-weight: 500; width: 100%; margin-top: 1rem; transition: all 0.15s; }
   .copy-btn:hover { background: #F5F5F5; }
-  .tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; }
-  .tab { padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1.5px solid #DDD; background: white; color: #666; font-family: inherit; font-weight: 500; }
-  .tab.active { background: #1A3EE8; color: white; border-color: #1A3EE8; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-  .error-box { background: #FFF0F0; border-radius: 8px; padding: 1rem; font-size: 14px; color: #CC0000; line-height: 1.6; }
+  .divider { height: 1px; background: #EEE; margin: 1.5rem 0; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: #F0F3FF; color: #1A3EE8; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
 <div class="card">
   <div class="header">
-    <div class="brand">Fan Fave</div>
+    <img src="data:image/png;base64,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" class="logo" alt="Fan Fave">
     <div class="title">Diagnóstico de Fidelização</div>
-    <div class="subtitle">8 perguntas. Diagnóstico real sobre o seu negócio, sem papo de consultor.</div>
+    <div class="subtitle">9 perguntas. Diagnóstico real e personalizado para o seu negócio.</div>
   </div>
 
-  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+    <div class="progress-label" id="prog-label">Pergunta 1 de 9</div>
+  </div>
 
   <div id="steps-wrap">
 
     <div class="step active" data-step="0">
-      <div class="step-label">Pergunta 1 de 8</div>
-      <div class="q-text">Qual é o tipo do seu negócio?</div>
-      <div class="q-hint">Isso define o perfil de cliente e o comportamento de retorno mais comum no seu segmento.</div>
+      <div class="step-label">Perfil do negócio</div>
+      <div class="q-text">Qual é o tipo do seu estabelecimento?</div>
+      <div class="q-hint">Cada segmento tem um padrão diferente de comportamento do cliente fiel.</div>
       <div class="options" data-key="tipo_negocio">
-        <div class="opt" data-val="restaurante"><div class="opt-radio"></div><div><div class="opt-text">Restaurante</div><div class="opt-sub">A la carte, executivo, self-service</div></div></div>
+        <div class="opt" data-val="restaurante"><div class="opt-radio"></div><div><div class="opt-text">Restaurante</div><div class="opt-sub">A la carte, executivo, self-service, temático</div></div></div>
         <div class="opt" data-val="bar_boteco"><div class="opt-radio"></div><div><div class="opt-text">Bar ou boteco</div><div class="opt-sub">Bebidas, petiscos, ambiente descontraído</div></div></div>
-        <div class="opt" data-val="cafeteria_padaria"><div class="opt-radio"></div><div><div class="opt-text">Cafeteria ou padaria</div><div class="opt-sub">Alto fluxo, ticket menor, frequência alta</div></div></div>
-        <div class="opt" data-val="lanchonete_fast"><div class="opt-radio"></div><div><div class="opt-text">Lanchonete ou fast food</div><div class="opt-sub">Volume, agilidade, decisão impulsiva</div></div></div>
-        <div class="opt" data-val="food_truck"><div class="opt-radio"></div><div><div class="opt-text">Food truck ou delivery</div><div class="opt-sub">Localização variável ou pedidos online</div></div></div>
+        <div class="opt" data-val="cafeteria_padaria"><div class="opt-radio"></div><div><div class="opt-text">Cafeteria ou padaria</div><div class="opt-sub">Alto fluxo diário, ticket menor, frequência alta</div></div></div>
+        <div class="opt" data-val="lanchonete_fast"><div class="opt-radio"></div><div><div class="opt-text">Lanchonete ou fast food</div><div class="opt-sub">Volume, agilidade, decisão rápida do cliente</div></div></div>
+        <div class="opt" data-val="food_truck"><div class="opt-radio"></div><div><div class="opt-text">Food truck ou delivery</div><div class="opt-sub">Localização variável ou operação digital</div></div></div>
       </div>
       <div class="nav"><button class="btn-next" id="n0" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="1">
-      <div class="step-label">Pergunta 2 de 8</div>
-      <div class="q-text">Há quanto tempo você está no negócio?</div>
-      <div class="q-hint">O tempo de operação define seu estágio de maturidade em fidelização.</div>
+      <div class="step-label">Maturidade</div>
+      <div class="q-text">Há quanto tempo você opera esse negócio?</div>
+      <div class="q-hint">O tempo define o estágio da sua base de clientes e o que faz sentido priorizar agora.</div>
       <div class="options" data-key="tempo_negocio">
-        <div class="opt" data-val="menos_1_ano"><div class="opt-radio"></div><div><div class="opt-text">Menos de 1 ano</div><div class="opt-sub">Ainda construindo base de clientes</div></div></div>
-        <div class="opt" data-val="1_3_anos"><div class="opt-radio"></div><div><div class="opt-text">1 a 3 anos</div><div class="opt-sub">Base formada, padrões começando a aparecer</div></div></div>
-        <div class="opt" data-val="3_7_anos"><div class="opt-radio"></div><div><div class="opt-text">3 a 7 anos</div><div class="opt-sub">Operação estável, clientes recorrentes já existem</div></div></div>
-        <div class="opt" data-val="mais_7_anos"><div class="opt-radio"></div><div><div class="opt-text">Mais de 7 anos</div><div class="opt-sub">Negócio consolidado, carteira fiel estabelecida</div></div></div>
+        <div class="opt" data-val="menos_1_ano"><div class="opt-radio"></div><div><div class="opt-text">Menos de 1 ano</div><div class="opt-sub">Construindo base, ainda sem padrão claro</div></div></div>
+        <div class="opt" data-val="1_3_anos"><div class="opt-radio"></div><div><div class="opt-text">1 a 3 anos</div><div class="opt-sub">Base formada, primeiros clientes recorrentes surgindo</div></div></div>
+        <div class="opt" data-val="3_7_anos"><div class="opt-radio"></div><div><div class="opt-text">3 a 7 anos</div><div class="opt-sub">Operação estável, clientela consolidada</div></div></div>
+        <div class="opt" data-val="mais_7_anos"><div class="opt-radio"></div><div><div class="opt-text">Mais de 7 anos</div><div class="opt-sub">Negócio maduro, carteira fiel já estabelecida</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n1" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="2">
-      <div class="step-label">Pergunta 3 de 8</div>
-      <div class="q-text">Como você descreveria o movimento do seu negócio hoje?</div>
-      <div class="q-hint">Não é sobre faturamento — é sobre o padrão de comportamento dos clientes.</div>
+      <div class="step-label">Padrão de movimento</div>
+      <div class="q-text">Como você descreveria o comportamento dos seus clientes hoje?</div>
+      <div class="q-hint">Não é sobre faturamento total — é sobre o padrão de retorno dos clientes.</div>
       <div class="options" data-key="movimento">
-        <div class="opt" data-val="muito_novo_pouco_volta"><div class="opt-radio"></div><div><div class="opt-text">Muita gente nova, pouca volta</div><div class="opt-sub">Fluxo alto mas rotatividade grande</div></div></div>
-        <div class="opt" data-val="base_fiel_pouco_novo"><div class="opt-radio"></div><div><div class="opt-text">Base fiel, mas pouco cliente novo</div><div class="opt-sub">Os mesmos frequentam, mas a base não cresce</div></div></div>
-        <div class="opt" data-val="equilibrado"><div class="opt-radio"></div><div><div class="opt-text">Equilibrado entre novos e recorrentes</div><div class="opt-sub">Mas não tenho certeza de quanto é cada um</div></div></div>
-        <div class="opt" data-val="movimento_irregular"><div class="opt-radio"></div><div><div class="opt-text">Movimento muito irregular</div><div class="opt-sub">Semanas cheias, semanas fracas sem padrão claro</div></div></div>
+        <div class="opt" data-val="muito_novo_pouco_volta"><div class="opt-radio"></div><div><div class="opt-text">Muita gente nova, mas pouca volta</div><div class="opt-sub">Alto fluxo, mas quem veio uma vez raramente retorna</div></div></div>
+        <div class="opt" data-val="base_fiel_pouco_novo"><div class="opt-radio"></div><div><div class="opt-text">Base fiel, mas pouco cliente novo</div><div class="opt-sub">Os mesmos voltam sempre, mas a base não cresce</div></div></div>
+        <div class="opt" data-val="equilibrado"><div class="opt-radio"></div><div><div class="opt-text">Equilíbrio entre novos e recorrentes</div><div class="opt-sub">Parece equilibrado, mas não tenho os números exatos</div></div></div>
+        <div class="opt" data-val="movimento_irregular"><div class="opt-radio"></div><div><div class="opt-text">Movimento muito irregular</div><div class="opt-sub">Semanas cheias e semanas fracas sem padrão claro</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n2" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="3">
-      <div class="step-label">Pergunta 4 de 8</div>
-      <div class="q-text">Você sabe quem são os seus 20 clientes mais frequentes?</div>
-      <div class="q-hint">Esse dado revela o nível de inteligência operacional do negócio.</div>
+      <div class="step-label">Inteligência sobre clientes</div>
+      <div class="q-text">Você consegue identificar seus clientes mais frequentes?</div>
+      <div class="q-hint">Esse dado revela o quanto o negócio conhece quem sustenta sua receita recorrente.</div>
       <div class="options" data-key="conhece_clientes">
-        <div class="opt" data-val="sim_sei_tudo"><div class="opt-radio"></div><div><div class="opt-text">Sim, conheço pelo nome e hábitos</div><div class="opt-sub">Sei o que pedem, quando vêm, quanto gastam</div></div></div>
-        <div class="opt" data-val="sei_de_vista"><div class="opt-radio"></div><div><div class="opt-text">Reconheço de vista, mas não tenho os dados</div><div class="opt-sub">Sei que são fiéis, mas não tenho contato ou histórico</div></div></div>
-        <div class="opt" data-val="poucos_clientes"><div class="opt-radio"></div><div><div class="opt-text">Conheço alguns, mas não a maioria</div></div></div>
-        <div class="opt" data-val="nao_sei"><div class="opt-radio"></div><div><div class="opt-text">Não tenho esse controle</div><div class="opt-sub">Não sei quem volta e quem não volta</div></div></div>
+        <div class="opt" data-val="sim_sei_tudo"><div class="opt-radio"></div><div><div class="opt-text">Sim — conheço pelo nome, hábito e frequência</div><div class="opt-sub">Tenho contato e histórico dos principais clientes</div></div></div>
+        <div class="opt" data-val="sei_de_vista"><div class="opt-radio"></div><div><div class="opt-text">Reconheço de vista, mas não tenho os dados</div><div class="opt-sub">Sei quem é fiel, mas não tenho contato ou histórico registrado</div></div></div>
+        <div class="opt" data-val="poucos_clientes"><div class="opt-radio"></div><div><div class="opt-text">Conheço alguns, mas a maioria passa anônima</div><div class="opt-sub">Só os que interagem diretamente comigo</div></div></div>
+        <div class="opt" data-val="nao_sei"><div class="opt-radio"></div><div><div class="opt-text">Não tenho esse controle</div><div class="opt-sub">Não sei quem voltou, quem sumiu ou quem é fiel</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n3" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="4">
-      <div class="step-label">Pergunta 5 de 8</div>
+      <div class="step-label">Histórico de fidelização</div>
       <div class="q-text">Você já tentou alguma estratégia de fidelização antes?</div>
-      <div class="q-hint">Entender o histórico evita recomendar o que já não funcionou.</div>
+      <div class="q-hint">Saber o que já foi testado evita recomendar o que não funcionou.</div>
       <div class="options" data-key="tentativa_anterior">
-        <div class="opt" data-val="nunca_tentei"><div class="opt-radio"></div><div><div class="opt-text">Nunca tentei nada formal</div><div class="opt-sub">Só o atendimento e o produto como fidelização</div></div></div>
-        <div class="opt" data-val="cartaozinho"><div class="opt-radio"></div><div><div class="opt-text">Sim, cartãozinho de papel</div><div class="opt-sub">Funcionou pouco ou parou de funcionar</div></div></div>
-        <div class="opt" data-val="app_plataforma"><div class="opt-radio"></div><div><div class="opt-text">Sim, aplicativo ou plataforma digital</div><div class="opt-sub">Mas teve baixa adesão ou era complicado demais</div></div></div>
-        <div class="opt" data-val="whatsapp_manual"><div class="opt-radio"></div><div><div class="opt-text">Sim, grupos de WhatsApp ou promoções manuais</div><div class="opt-sub">Sem controle real de resultado</div></div></div>
+        <div class="opt" data-val="nunca_tentei"><div class="opt-radio"></div><div><div class="opt-text">Nunca tentei nada formal</div><div class="opt-sub">A fidelização acontece só pelo atendimento e produto</div></div></div>
+        <div class="opt" data-val="cartaozinho"><div class="opt-radio"></div><div><div class="opt-text">Sim — cartãozinho de papel</div><div class="opt-sub">Funcionou pouco, cliente perdia, sem controle de dados</div></div></div>
+        <div class="opt" data-val="app_plataforma"><div class="opt-radio"></div><div><div class="opt-text">Sim — aplicativo ou plataforma digital</div><div class="opt-sub">Baixa adesão ou operação complicada demais</div></div></div>
+        <div class="opt" data-val="whatsapp_manual"><div class="opt-radio"></div><div><div class="opt-text">Sim — grupos de WhatsApp ou promoções manuais</div><div class="opt-sub">Sem controle de resultado, muito trabalho manual</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n4" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="5">
-      <div class="step-label">Pergunta 6 de 8</div>
-      <div class="q-text">Qual é a sua maior dificuldade com clientes hoje?</div>
-      <div class="q-hint">Escolha a que mais te tira o sono de verdade.</div>
+      <div class="step-label">Principal dor</div>
+      <div class="q-text">Qual é o problema com clientes que mais te incomoda hoje?</div>
+      <div class="q-hint">Escolha o que mais afeta o seu resultado na prática.</div>
       <div class="options" data-key="maior_dificuldade">
-        <div class="opt" data-val="cliente_some"><div class="opt-radio"></div><div><div class="opt-text">Cliente some depois de um tempo sem motivo aparente</div></div></div>
-        <div class="opt" data-val="nao_sei_por_que_volta"><div class="opt-radio"></div><div><div class="opt-text">Não sei o que faz o cliente voltar — ou não voltar</div></div></div>
-        <div class="opt" data-val="concorrencia"><div class="opt-radio"></div><div><div class="opt-text">Concorrência levando meus clientes</div></div></div>
-        <div class="opt" data-val="dependencia_delivery"><div class="opt-radio"></div><div><div class="opt-text">Dependência de plataformas de delivery ou redes sociais</div></div></div>
+        <div class="opt" data-val="cliente_some"><div class="opt-radio"></div><div><div class="opt-text">Cliente some depois de um tempo sem motivo aparente</div><div class="opt-sub">Estava frequente, sumiu, não sei o que aconteceu</div></div></div>
+        <div class="opt" data-val="nao_sei_por_que_volta"><div class="opt-radio"></div><div><div class="opt-text">Não sei o que faz o cliente voltar — ou não voltar</div><div class="opt-sub">Falta previsibilidade no movimento</div></div></div>
+        <div class="opt" data-val="concorrencia"><div class="opt-radio"></div><div><div class="opt-text">Concorrência levando meus clientes</div><div class="opt-sub">Sem diferencial claro para segurar quem já me conhece</div></div></div>
+        <div class="opt" data-val="dependencia_delivery"><div class="opt-radio"></div><div><div class="opt-text">Dependo demais de delivery ou redes sociais</div><div class="opt-sub">O canal controla minha relação com o cliente</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n5" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="6">
-      <div class="step-label">Pergunta 7 de 8</div>
-      <div class="q-text">Quanto você investe hoje em atrair clientes novos?</div>
-      <div class="q-hint">Vamos comparar com o que vai ao cliente que já existe.</div>
+      <div class="step-label">Investimento em marketing</div>
+      <div class="q-text">Quanto você investe por mês para atrair clientes novos?</div>
+      <div class="q-hint">Queremos comparar o que vai para aquisição versus o que vai para retenção.</div>
       <div class="options" data-key="investimento_aquisicao">
         <div class="opt" data-val="nao_invisto"><div class="opt-radio"></div><div><div class="opt-text">Não invisto — dependo de indicação e fluxo orgânico</div></div></div>
-        <div class="opt" data-val="menos_300"><div class="opt-radio"></div><div><div class="opt-text">Menos de R$300/mês</div><div class="opt-sub">Impulsionamentos pontuais, panfleto, redes sociais</div></div></div>
-        <div class="opt" data-val="300_1000"><div class="opt-radio"></div><div><div class="opt-text">Entre R$300 e R$1.000/mês</div><div class="opt-sub">Tráfego pago, influencer local, promoções</div></div></div>
-        <div class="opt" data-val="mais_1000"><div class="opt-radio"></div><div><div class="opt-text">Mais de R$1.000/mês</div></div></div>
+        <div class="opt" data-val="menos_300"><div class="opt-radio"></div><div><div class="opt-text">Menos de R00/mês</div><div class="opt-sub">Impulsionamentos pontuais, panfleto, stories</div></div></div>
+        <div class="opt" data-val="300_1000"><div class="opt-radio"></div><div><div class="opt-text">Entre R00 e R.000/mês</div><div class="opt-sub">Tráfego pago, influencer local, promoções</div></div></div>
+        <div class="opt" data-val="mais_1000"><div class="opt-radio"></div><div><div class="opt-text">Mais de R.000/mês</div><div class="opt-sub">Estratégia mais estruturada de marketing</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n6" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="7">
-      <div class="step-label">Pergunta 8 de 8</div>
-      <div class="q-text">O que você espera de um programa de fidelização?</div>
-      <div class="q-hint">Isso define qual aspecto do diagnóstico vai ser mais relevante para você.</div>
+      <div class="step-label">Objetivo principal</div>
+      <div class="q-text">Se você pudesse resolver uma coisa agora, qual seria?</div>
+      <div class="q-hint">Isso define qual resultado o diagnóstico vai priorizar para você.</div>
       <div class="options" data-key="expectativa">
-        <div class="opt" data-val="mais_retorno"><div class="opt-radio"></div><div><div class="opt-text">Que o cliente volte com mais frequência</div></div></div>
-        <div class="opt" data-val="conhecer_clientes"><div class="opt-radio"></div><div><div class="opt-text">Conhecer melhor quem frequenta meu negócio</div></div></div>
-        <div class="opt" data-val="vender_mais"><div class="opt-radio"></div><div><div class="opt-text">Aumentar o ticket médio por visita</div></div></div>
+        <div class="opt" data-val="mais_retorno"><div class="opt-radio"></div><div><div class="opt-text">Fazer o cliente voltar com mais frequência</div></div></div>
+        <div class="opt" data-val="conhecer_clientes"><div class="opt-radio"></div><div><div class="opt-text">Saber quem são meus clientes e ter os dados deles</div></div></div>
+        <div class="opt" data-val="vender_mais"><div class="opt-radio"></div><div><div class="opt-text">Aumentar o quanto cada cliente gasta por visita</div></div></div>
         <div class="opt" data-val="recuperar_clientes"><div class="opt-radio"></div><div><div class="opt-text">Recuperar clientes que sumiram</div></div></div>
       </div>
       <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n7" disabled onclick="nextStep()">Próxima →</button></div>
     </div>
 
     <div class="step" data-step="8">
+      <div class="step-label">Pergunta aberta</div>
+      <div class="q-text">O que você mais quer melhorar no seu negócio nos próximos 3 meses?</div>
+      <div class="q-hint">Escreva com suas palavras — isso torna o diagnóstico muito mais preciso.</div>
+      <textarea class="textarea-field" id="melhoria" placeholder="Ex: quero que meus clientes voltem mais, quero parar de depender do iFood, quero saber quais promoções funcionam de verdade..." oninput="checkTextarea()"></textarea>
+      <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n8" disabled onclick="nextStep()">Próxima →</button></div>
+    </div>
+
+    <div class="step" data-step="9">
       <div class="step-label">Quase lá</div>
       <div class="q-text">Onde enviamos seu diagnóstico?</div>
-      <div class="q-hint">O diagnóstico personalizado será enviado direto no seu WhatsApp em instantes.</div>
+      <div class="q-hint">Gratuito e sem compromisso. Você recebe o diagnóstico completo no seu WhatsApp.</div>
       <div class="contact-fields">
         <div class="field-group"><div class="field-label">Seu nome</div><input class="field-input" id="nome" type="text" placeholder="Como te chamamos?" oninput="checkContact()"></div>
         <div class="field-group"><div class="field-label">Nome do estabelecimento</div><input class="field-input" id="estabelecimento" type="text" placeholder="Ex: Bar do João" oninput="checkContact()"></div>
         <div class="field-group"><div class="field-label">WhatsApp com DDD</div><input class="field-input" id="whatsapp" type="tel" placeholder="(38) 99999-9999" oninput="checkContact()"></div>
         <div class="field-group"><div class="field-label">Cidade</div><input class="field-input" id="cidade" type="text" placeholder="Ex: Montes Claros" oninput="checkContact()"></div>
       </div>
-      <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n8" disabled onclick="gerar()">Gerar meu diagnóstico →</button></div>
+      <div class="nav"><button class="btn-back" onclick="prevStep()">← Voltar</button><button class="btn-next" id="n9" disabled onclick="gerar()">Gerar meu diagnóstico →</button></div>
     </div>
 
-    <div class="step" data-step="9">
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab(0)">Diagnóstico</button>
-        <button class="tab" onclick="switchTab(1)">Msg WhatsApp</button>
-      </div>
-      <div class="tab-panel active" id="tab0">
-        <div class="result-box">
-          <div id="loading-diag" style="text-align:center; padding: 2rem 0;">
-            <div class="spinner"></div>
-            <div class="loading-text">Analisando o perfil do seu negócio...</div>
-          </div>
-          <div id="diag-content" style="display:none;">
-            <div class="score-row"><div class="score-num" id="score-num">–</div><div class="score-lbl">Índice de maturidade<br>em fidelização</div></div>
-            <div class="diag-nome" id="diag-nome"></div>
+    <div class="step" data-step="10">
+      <div class="result-wrap">
+        <div class="loading-box" id="loading-diag">
+          <div class="spinner"></div>
+          <div class="loading-text">Analisando o perfil do seu negócio...</div>
+          <div class="loading-sub">Isso leva alguns segundos</div>
+        </div>
+        <div id="diag-content" style="display:none;">
+          <div class="diag-card">
+            <div class="diag-score-row">
+              <div class="score-circle"><div class="score-num" id="score-num">–</div></div>
+              <div class="score-info">
+                <div class="score-title">Índice de maturidade em fidelização</div>
+                <div class="score-nome" id="diag-nome"></div>
+              </div>
+            </div>
             <div class="diag-body" id="diag-body"></div>
+            <div class="diag-acao">⚡ Ação imediata</div>
+            <div class="diag-acao-text" id="diag-acao"></div>
           </div>
-          <div id="error-content" style="display:none;"></div>
+          <button class="copy-btn" onclick="copiar()">📋 Copiar diagnóstico completo</button>
         </div>
-        <button class="copy-btn" onclick="copiar('diag-body')">📋 Copiar diagnóstico</button>
-      </div>
-      <div class="tab-panel" id="tab1">
-        <div class="wpp-box">
-          <div class="wpp-label">Mensagem pronta para WhatsApp</div>
-          <div class="wpp-msg" id="wpp-msg">Aguardando diagnóstico...</div>
-        </div>
-        <button class="copy-btn" onclick="copiar('wpp-msg')">📋 Copiar mensagem</button>
+        <div id="error-content" style="display:none;"></div>
       </div>
     </div>
 
@@ -226,12 +241,17 @@
 <script>
 const BACKEND = 'https://fanfave-diagnostico-production.up.railway.app';
 let currentStep = 0;
-const totalSteps = 8;
+const totalSteps = 9;
 const answers = {};
 
 function updateProgress() {
-  const pct = currentStep === 9 ? 100 : Math.round((currentStep / totalSteps) * 100);
+  const pct = currentStep >= 10 ? 100 : Math.round((currentStep / totalSteps) * 100);
   document.getElementById('prog').style.width = pct + '%';
+  if (currentStep < 10) {
+    document.getElementById('prog-label').textContent = 'Pergunta ' + (currentStep + 1) + ' de ' + totalSteps;
+  } else {
+    document.getElementById('prog-label').textContent = 'Concluído';
+  }
 }
 
 document.querySelectorAll('.options').forEach(opts => {
@@ -245,6 +265,16 @@ document.querySelectorAll('.options').forEach(opts => {
     });
   });
 });
+
+function checkTextarea() {
+  const val = document.getElementById('melhoria').value.trim();
+  document.getElementById('n8').disabled = val.length < 10;
+}
+
+function checkContact() {
+  const ok = ['nome','estabelecimento','whatsapp','cidade'].every(id => document.getElementById(id).value.trim());
+  document.getElementById('n9').disabled = !ok;
+}
 
 function nextStep() {
   document.querySelector('.step[data-step="' + currentStep + '"]').classList.remove('active');
@@ -262,20 +292,10 @@ function prevStep() {
   window.scrollTo(0, 0);
 }
 
-function checkContact() {
-  const ok = ['nome','estabelecimento','whatsapp','cidade'].every(id => document.getElementById(id).value.trim());
-  document.getElementById('n8').disabled = !ok;
-}
-
-function switchTab(idx) {
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
-}
-
 async function gerar() {
-  document.querySelector('.step[data-step="8"]').classList.remove('active');
-  currentStep = 9;
-  document.querySelector('.step[data-step="9"]').classList.add('active');
+  document.querySelector('.step[data-step="9"]').classList.remove('active');
+  currentStep = 10;
+  document.querySelector('.step[data-step="10"]').classList.add('active');
   updateProgress();
   window.scrollTo(0, 0);
 
@@ -283,38 +303,45 @@ async function gerar() {
   const estabelecimento = document.getElementById('estabelecimento').value.trim();
   const whatsapp = document.getElementById('whatsapp').value.trim();
   const cidade = document.getElementById('cidade').value.trim();
+  const melhoria = document.getElementById('melhoria').value.trim();
 
   try {
     const res = await fetch(BACKEND + '/diagnostico-completo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, estabelecimento, cidade, whatsapp, respostas: answers })
+      body: JSON.stringify({ nome, estabelecimento, cidade, whatsapp, melhoria, respostas: answers })
     });
     const dados = await res.json();
     if (!res.ok) throw new Error(dados.erro || 'Erro no servidor');
 
     const texto = dados.diagnostico || '';
     const score = dados.score || '–';
+    const acao = dados.acao_imediata || '';
 
     document.getElementById('score-num').textContent = score + '/10';
-    document.getElementById('diag-nome').textContent = estabelecimento + ' · ' + nome + ' · ' + cidade;
+    document.getElementById('diag-nome').textContent = estabelecimento + ' · ' + cidade;
     document.getElementById('diag-body').textContent = texto;
+    document.getElementById('diag-acao').textContent = acao;
     document.getElementById('loading-diag').style.display = 'none';
     document.getElementById('diag-content').style.display = 'block';
-
-    const wpp = `Olá, ${nome}! 👋\n\nAqui é o Fan Fave. Seu diagnóstico de fidelização para *${estabelecimento}* ficou pronto.\n\n📊 *Índice de maturidade: ${score}/10*\n\n${texto.slice(0, 600)}...\n\n---\nQuer entender como o Fan Fave pode mudar esse cenário para o seu negócio?\n\n👇 Responde aqui que a gente conversa.\n\n_Fan Fave — Fidelização para food service_`;
-    document.getElementById('wpp-msg').textContent = wpp;
 
   } catch(e) {
     document.getElementById('loading-diag').style.display = 'none';
     document.getElementById('error-content').style.display = 'block';
-    document.getElementById('error-content').innerHTML = '<div class="error-box">Erro: ' + e.message + '</div>';
+    document.getElementById('error-content').innerHTML = '<div class="error-box">Erro: ' + e.message + '<br><br>Tente novamente em alguns instantes.</div>';
   }
 }
 
-function copiar(id) {
-  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
-    alert('Copiado!');
+function copiar() {
+  const score = document.getElementById('score-num').textContent;
+  const nome = document.getElementById('diag-nome').textContent;
+  const body = document.getElementById('diag-body').textContent;
+  const acao = document.getElementById('diag-acao').textContent;
+  const texto = 'DIAGNÓSTICO DE FIDELIZAÇÃO — FAN FAVE\n' + nome + '\nÍndice de maturidade: ' + score + '\n\n' + body + '\n\n⚡ AÇÃO IMEDIATA\n' + acao;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = '📋 Copiar diagnóstico completo'; }, 2000);
   });
 }
 
