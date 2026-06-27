@@ -129,10 +129,18 @@ app.post('/whatsapp', async (req, res) => {
     const mensagem = `Olá, ${nome}! 👋\n\nAqui é o Fan Fave. Seu diagnóstico de fidelização para *${estabelecimento}* ficou pronto.\n\n📊 *Índice de maturidade: ${score || '–'}/10*\n\n${(diagnostico || '').slice(0, 600)}...\n\n⚡ *Ação imediata:*\n${acao_imediata || ''}\n\n---\nQuer entender como o Fan Fave resolve isso para o seu negócio?\n\n👇 Responde aqui que a gente conversa.\n\n_Fan Fave — Fidelização para food service_`;
 
     const zapiRes = await fetch(`https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE}/token/${process.env.ZAPI_TOKEN}/send-text`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: numero, message: mensagem })
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ phone: numero, message: mensagem })
+});
+
+const notificacao = `🔔 *Novo lead — Fan Fave Diagnóstico*\n\n👤 *Nome:* ${nome}\n🏪 *Estabelecimento:* ${estabelecimento}\n📍 *Cidade:* ${cidade || ''}\n📱 *WhatsApp:* ${whatsapp}\n📊 *Score:* ${score || '–'}/10\n\n💬 *O que quer melhorar:*\n${req.body.melhoria || 'não informado'}\n\n⚡ *Ação imediata gerada:*\n${acao_imediata || ''}`;
+
+await fetch(`https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE}/token/${process.env.ZAPI_TOKEN}/send-text`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ phone: '5538999741263', message: notificacao })
+});
 
     const zapiDados = await zapiRes.json();
     if (!zapiRes.ok) return res.status(500).json({ erro: 'Erro ao enviar WhatsApp', detalhe: zapiDados });
