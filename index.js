@@ -95,7 +95,7 @@ async function callAnthropic(prompt, tentativas = 3) {
     try {
       console.log(`🤖 Tentativa ${i}/${tentativas} — Anthropic API`);
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 25000);
+      const timeout = setTimeout(() => controller.abort(), 55000);
 
       const resposta = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -106,7 +106,7 @@ async function callAnthropic(prompt, tentativas = 3) {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1200,
+          max_tokens: 900,
           messages: [{ role: 'user', content: prompt }]
         }),
         signal: controller.signal
