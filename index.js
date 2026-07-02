@@ -23,36 +23,68 @@ const labelMap = {
 
 function buildPrompt(dados) {
   const { nome, estabelecimento, cidade, melhoria, respostas: r } = dados;
-  return `Você é um especialista sênior em fidelização de clientes para pequenos e médios negócios de alimentação no Brasil. Você combina profundo conhecimento técnico sobre retenção de clientes com experiência prática em food service.
 
-Seu diagnóstico é direto, específico e útil. Você fala como alguém que conhece a realidade de quem está atrás do balcão.
+  const tipo = labelMap.tipo_negocio[r.tipo_negocio] || r.tipo_negocio;
+  const tempo = labelMap.tempo_negocio[r.tempo_negocio] || r.tempo_negocio;
+  const movimento = labelMap.movimento[r.movimento] || r.movimento;
+  const conhece = labelMap.conhece_clientes[r.conhece_clientes] || r.conhece_clientes;
+  const tentativa = labelMap.tentativa_anterior[r.tentativa_anterior] || r.tentativa_anterior;
+  const dificuldade = labelMap.maior_dificuldade[r.maior_dificuldade] || r.maior_dificuldade;
+  const investimento = labelMap.investimento_aquisicao[r.investimento_aquisicao] || r.investimento_aquisicao;
+  const expectativa = labelMap.expectativa[r.expectativa] || r.expectativa;
 
-Ao final do diagnóstico, apresente naturalmente o Fan Fave como solução. O Fan Fave é uma plataforma de fidelização para food service que funciona apenas com o número de celular do cliente: sem app, sem cartão. O cliente pontua a cada visita e é notificado automaticamente. O estabelecimento tem painel completo com dados de retorno e frequência. Ativação em até 2 dias. R$119,90/mês.
+  // Calcula score base para calibrar a IA
+  let scoreBase = 5;
+  if (r.conhece_clientes === 'sim_sei_tudo') scoreBase += 2;
+  if (r.conhece_clientes === 'nao_sei') scoreBase -= 2;
+  if (r.tentativa_anterior === 'app_plataforma') scoreBase += 1;
+  if (r.tentativa_anterior === 'nunca_tentei') scoreBase -= 1;
+  if (r.movimento === 'base_fiel_pouco_novo') scoreBase += 1;
+  if (r.movimento === 'muito_novo_pouco_volta') scoreBase -= 1;
+  if (r.investimento_aquisicao === 'mais_1000') scoreBase += 1;
+  if (r.investimento_aquisicao === 'nao_invisto') scoreBase -= 1;
+  scoreBase = Math.max(2, Math.min(9, scoreBase));
 
----
+  return `Você é um especialista em fidelização de clientes para negócios de alimentação no Brasil. Você conhece profundamente o comportamento do consumidor em cada segmento — sabe que um bar/boteco tem dinâmica completamente diferente de uma cafeteria, que uma pizzaria tem ticket médio e frequência de visita diferentes de uma lanchonete, e que o perfil de cliente fiel varia muito entre esses contextos.
 
-PERFIL DO NEGÓCIO:
+REGRAS ABSOLUTAS — LEIA COM ATENÇÃO:
+1. Escreva SEMPRE na PRIMEIRA PESSOA, falando DIRETAMENTE com ${nome}. Use "você", "seu negócio", "sua ${tipo}". NUNCA use o nome dele na terceira pessoa. NUNCA escreva "o ${nome} deve..." ou "${nome} precisa...". SEMPRE "você deve...", "seu negócio precisa...".
+2. Seja ESPECÍFICO para o segmento ${tipo}. Mencione características reais desse tipo de negócio — ticket médio típico, frequência de visita, comportamento do cliente fiel nesse segmento.
+3. O score deve ser CALIBRADO de forma realista. Use ${scoreBase} como referência central. Ajuste de acordo com a combinação de respostas. Um negócio com ${tempo} de operação, que ${conhece.toLowerCase()} e nunca teve sistema formal tem score diferente de um que já tentou e tem base fiel. Seja preciso — scores próximos de 2 ou 9 são extremos e raros.
+4. As ações devem ser CONCRETAS e PRÁTICAS — não genéricas. Diga o que fazer, como fazer, em quanto tempo.
+5. Apresente o Fan Fave como solução ESPECÍFICA para os problemas identificados — não como propaganda genérica. Conecte diretamente o problema diagnosticado à funcionalidade do Fan Fave que resolve.
+
+PERFIL COMPLETO DO NEGÓCIO:
 - Responsável: ${nome}
-- Estabelecimento: ${estabelecimento} (${cidade})
-- Tipo: ${labelMap.tipo_negocio[r.tipo_negocio] || r.tipo_negocio}
-- Tempo de operação: ${labelMap.tempo_negocio[r.tempo_negocio] || r.tempo_negocio}
-- Padrão de movimento: ${labelMap.movimento[r.movimento] || r.movimento}
-- Conhecimento da base de clientes: ${labelMap.conhece_clientes[r.conhece_clientes] || r.conhece_clientes}
-- Histórico de fidelização: ${labelMap.tentativa_anterior[r.tentativa_anterior] || r.tentativa_anterior}
-- Principal dificuldade: ${labelMap.maior_dificuldade[r.maior_dificuldade] || r.maior_dificuldade}
-- Investimento mensal em aquisição: ${labelMap.investimento_aquisicao[r.investimento_aquisicao] || r.investimento_aquisicao}
-- Objetivo principal: ${labelMap.expectativa[r.expectativa] || r.expectativa}
-- O que mais quer melhorar: "${melhoria || 'não informado'}"
+- Estabelecimento: ${estabelecimento} — ${tipo} em ${cidade}
+- Tempo de operação: ${tempo}
+- Padrão de movimento: ${movimento}
+- Conhecimento da base de clientes: ${conhece}
+- Histórico de fidelização: ${tentativa}
+- Principal dificuldade: ${dificuldade}
+- Investimento mensal em aquisição: ${investimento}
+- Objetivo principal: ${expectativa}
+- O que ${nome} quer melhorar (palavras dele): "${melhoria || 'não informado'}"
+
+SOBRE O FAN FAVE (use essas informações para conectar com os problemas específicos):
+- Programa de pontos digital para food service
+- Funciona APENAS com o número de celular do cliente — sem app, sem cartão, sem QR code
+- O atendente digita o número no caixa e o ponto é registrado na hora
+- O cliente acumula pontos e recebe notificação automática no WhatsApp quando tem pontos para resgatar
+- O estabelecimento acessa painel completo: quem voltou, quem sumiu, frequência, perfil
+- Funcionalidade de reativação: identifica clientes inativos e permite enviar oferta diretamente
+- Ativação em até 2 dias com treinamento da equipe incluído
+- R$119,90/mês
 
 ---
 
-Gere o diagnóstico no seguinte formato JSON e nada mais além do JSON:
+Gere o diagnóstico no seguinte formato JSON. Nada além do JSON — sem markdown, sem backticks, sem texto antes ou depois:
 
 {
-  "score": <número de 0 a 10>,
-  "estagio": "<frase curta de 1 linha>",
-  "diagnostico": "<3 a 4 parágrafos curtos. Analise o padrão, identifique o erro principal, conecte aos resultados no caixa. Ao final introduza o Fan Fave naturalmente.>",
-  "acao_imediata": "<uma ação concreta para os próximos 7 dias. Máximo 2 frases.>"
+  "score": <número de ${scoreBase - 1} a ${scoreBase + 1}, sendo honesto e calibrado para este perfil específico>,
+  "estagio": "<frase curta e direta descrevendo em que estágio de maturidade em fidelização este negócio está — seja específico para o segmento ${tipo}>",
+  "diagnostico": "<4 parágrafos diretos, escritos na PRIMEIRA PESSOA falando com ${nome}:\n\nParágrafo 1: Diagnóstico real do padrão atual de clientes na ${tipo} de ${nome} — interprete as combinações de respostas, não as repita. Conecte o padrão de movimento com o que acontece no caixa em termos concretos.\n\nParágrafo 2: O erro principal de fidelização específico para este tipo de negócio e este perfil. Seja preciso — o que exatamente está fazendo o cliente não voltar ou o negócio não crescer. Traga dados ou referências do segmento ${tipo} para embasar.\n\nParágrafo 3: As consequências reais no caixa — quanto custa esse erro em reais, de forma aproximada, baseado no perfil de investimento e segmento informado.\n\nParágrafo 4: Como o Fan Fave resolve especificamente o problema identificado neste negócio — não genérico, conecte a funcionalidade específica do Fan Fave com a dor específica de ${nome}>",
+  "acao_imediata": "<uma ação ESPECÍFICA e PRÁTICA que ${nome} pode implementar nos próximos 7 dias para começar a resolver o problema principal. Seja tão específico que ele consiga executar sem precisar de mais explicação. Se o Fan Fave for parte da ação, mencione como ele se encaixa. Máximo 3 frases.>"
 }`;
 }
 
