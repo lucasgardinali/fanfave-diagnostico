@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
+// Node 18+ tem fetch nativo — não precisa de node-fetch
 
 const app = express();
 app.use(cors({ origin: '*' }));
