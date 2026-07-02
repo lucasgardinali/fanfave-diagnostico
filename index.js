@@ -44,27 +44,37 @@ function buildPrompt(dados) {
   if (r.investimento_aquisicao === 'nao_invisto') scoreBase -= 1;
   scoreBase = Math.max(2, Math.min(9, scoreBase));
 
-  return `Você é especialista em fidelização para food service no Brasil. Gere um diagnóstico direto e específico para ${nome}, dono de ${tipo} em ${cidade}.
+  return `Você é um consultor especialista em fidelização de clientes para food service no Brasil, com 15 anos de experiência. Você conhece profundamente as métricas reais de cada segmento — ticket médio, frequência de visita, taxa de retorno típica, margem — e sabe exatamente o que trava o crescimento de cada tipo de negócio.
 
-REGRAS:
-- Escreva na PRIMEIRA PESSOA falando com ${nome}: "você", "seu negócio". NUNCA "o ${nome} deve..."
-- Seja específico para ${tipo} — ticket médio, frequência, comportamento do cliente fiel nesse segmento
-- Score entre ${scoreBase - 1} e ${scoreBase + 1}
-- Ações práticas e concretas
-- Apresente o Fan Fave (programa de pontos por celular, sem app, R$119,90/mês, ativa em 2 dias) como solução específica para os problemas encontrados
+Gere um diagnóstico profundo e específico para ${nome}, dono de um negócio do tipo "${tipo}" chamado "${estabelecimento}" em ${cidade}.
 
-PERFIL:
-- ${estabelecimento} — ${tipo}, ${tempo} de operação, ${cidade}
-- Movimento: ${movimento}
-- Conhece clientes: ${conhece}
-- Já tentou: ${tentativa}
-- Dificuldade: ${dificuldade}
-- Investe em aquisição: ${investimento}
-- Objetivo: ${expectativa}
-- Quer melhorar: "${melhoria || 'não informado'}"
+ATENÇÃO AO SEGMENTO: o negócio é "${tipo}". Todas as suas análises, exemplos e números devem ser sobre ${tipo} — NÃO confunda com outro segmento. Se é cafeteria, fale de cafeteria. Se é pizzaria, fale de pizzaria.
 
-Responda APENAS com JSON válido:
-{"score":${scoreBase},"estagio":"<1 linha>","diagnostico":"<3 parágrafos diretos na primeira pessoa>","acao_imediata":"<1 ação concreta para 7 dias, máximo 2 frases>"}`;
+REGRAS DE ESCRITA:
+- PRIMEIRA PESSOA, falando direto com ${nome}: "você", "seu negócio". NUNCA "o ${nome}" na terceira pessoa.
+- Traga NÚMEROS REAIS do segmento ${tipo}: ticket médio típico, frequência de visita esperada, quanto vale um cliente fiel vs ocasional, taxa de retorno média do setor.
+- Seja específico e picante — aponte o problema real com franqueza, sem ser genérico.
+- Score entre ${scoreBase - 1} e ${scoreBase + 1}.
+
+DADOS DO NEGÓCIO:
+- ${estabelecimento} — ${tipo}, ${tempo} de operação, em ${cidade}
+- Padrão de movimento: ${movimento}
+- Conhecimento dos clientes: ${conhece}
+- Já tentou fidelizar: ${tentativa}
+- Maior dificuldade: ${dificuldade}
+- Investimento em atrair clientes: ${investimento}
+- Objetivo principal: ${expectativa}
+- Nas palavras dele, quer melhorar: "${melhoria || 'não informado'}"
+
+COMO O FAN FAVE RESOLVE (conecte especificamente com os problemas acima):
+- Programa de pontos digital: cliente pontua só com o número de celular, sem app nem cartão
+- Cria automaticamente a base de dados que ${nome} não tem hoje — nome, contato, histórico de cada cliente
+- Painel mostra quem sumiu, quem está prestes a sumir, quem são os clientes mais fiéis
+- Notifica o cliente automaticamente quando tem pontos, trazendo ele de volta
+- Ativa em 2 dias, R$119,90/mês
+
+Responda APENAS com JSON válido, sem markdown:
+{"score":${scoreBase},"estagio":"<frase de 1 linha sobre o estágio de maturidade específico deste ${tipo}>","diagnostico":"<3 parágrafos densos e específicos na primeira pessoa. Parágrafo 1: o que os dados revelam sobre a situação real do ${tipo} de ${nome}, com números do segmento. Parágrafo 2: o erro central que está custando dinheiro — seja franco e específico, quantifique a perda. Parágrafo 3: como o Fan Fave resolve exatamente esse problema, conectando funcionalidade com a dor real dele.>","acao_imediata":"<1 ação concreta e específica para os próximos 7 dias, que ${nome} consiga executar sozinho. Máximo 3 frases.>"}`;
 }
 
 // ─── CHAMADA À ANTHROPIC (node-fetch, como o original) ───────────────────────
@@ -94,7 +104,7 @@ async function salvarLeadNoCRM({ nome, whatsapp, estabelecimento, tipo, cidade, 
     const res = await fetch(`${SOFIA_API}/api/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, whatsapp: whatsapp?.replace(/\D/g, '') || '', estabelecimento, tipo: tipo || 'Food service', cidade: cidade || 'Montes Claros', status: 'novo', origem: 'landing', notas })
+      body: JSON.stringify({ nome, whatsapp: whatsapp?.replace(/\D/g, '') || '', estabelecimento, tipo: tipo || 'Food service', cidade: cidade || 'Montes Claros', status: 'novo', origem: 'diagnostico', notas })
     });
     const data = await res.json();
     if (!res.ok && res.status !== 409) console.warn('Aviso CRM:', data.error);
@@ -175,20 +185,55 @@ app.post('/whatsapp', async (req, res) => {
 
 app.post('/diagnostico-completo', async (req, res) => {
   try {
-    const diagRes = await fetch(`http://localhost:${PORT}/diagnostico`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(req.body)
-    });
-    const diagDados = await diagRes.json();
-    if (!diagRes.ok) return res.status(500).json(diagDados);
+    const { nome, estabelecimento, cidade, whatsapp, melhoria, respostas } = req.body;
+    if (!nome || !estabelecimento || !cidade || !respostas) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: nome, estabelecimento, cidade, respostas' });
+    }
 
-    const { nome, estabelecimento, cidade, whatsapp, melhoria } = req.body;
-    fetch(`http://localhost:${PORT}/whatsapp`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ whatsapp, nome, estabelecimento, cidade, melhoria, diagnostico: diagDados.diagnostico, score: diagDados.score, acao_imediata: diagDados.acao_imediata })
-    }).catch(e => console.warn('WhatsApp background:', e.message));
+    // 1. Gera o diagnóstico
+    const prompt = buildPrompt({ nome, estabelecimento, cidade, melhoria, respostas });
+    let texto;
+    try {
+      texto = await callAnthropic(prompt);
+    } catch (err) {
+      console.error('Anthropic falhou:', err.message);
+      return res.status(503).json({ erro: 'Serviço de IA temporariamente indisponível. Tente novamente em alguns minutos.' });
+    }
 
-    res.json(diagDados);
+    let parsed;
+    try {
+      parsed = JSON.parse(texto.replace(/```json|```/g, '').trim());
+    } catch (e) {
+      const scoreMatch = texto.match(/(\d[\.,]?\d?)\s*(?:\/\s*10|de\s*10)/i);
+      parsed = { score: scoreMatch ? parseFloat(scoreMatch[1]) : null, diagnostico: texto, acao_imediata: '', estagio: '' };
+    }
+
+    // 2. Salva no CRM
+    const tipo = labelMap.tipo_negocio[respostas.tipo_negocio] || respostas.tipo_negocio || 'Food service';
+    await salvarLeadNoCRM({ nome, whatsapp, estabelecimento, tipo, cidade, diagnostico: parsed.diagnostico, score: parsed.score, acao_imediata: parsed.acao_imediata, melhoria });
+
+    // 3. Responde para a tela imediatamente
+    res.json({ diagnostico: parsed.diagnostico, score: parsed.score, acao_imediata: parsed.acao_imediata, estagio: parsed.estagio });
+
+    // 4. Envia WhatsApp em background (não bloqueia a resposta) — chama as funções diretamente
+    (async () => {
+      try {
+        if (whatsapp) {
+          const msgLead = `Olá, ${nome}! 👋\n\nAqui é o Fan Fave. Seu diagnóstico de fidelização para *${estabelecimento}* ficou pronto.\n\n📊 *Índice de maturidade: ${parsed.score || '–'}/10*\n\n${(parsed.diagnostico || '').slice(0, 600)}...\n\n⚡ *Ação imediata:*\n${parsed.acao_imediata || ''}\n\n---\nQuer entender como o Fan Fave resolve isso para o seu negócio?\n\n👇 Responde aqui que a gente conversa.\n\n_Fan Fave — Fidelização para food service_`;
+          await enviarWhatsApp(whatsapp, msgLead);
+        }
+
+        const msgManager = `🔔 *Novo lead — Fan Fave Diagnóstico*\n\n👤 *Nome:* ${nome}\n🏪 *Estabelecimento:* ${estabelecimento}\n📍 *Cidade:* ${cidade || ''}\n📱 *WhatsApp:* ${whatsapp}\n📊 *Score:* ${parsed.score || '–'}/10\n\n💬 *O que quer melhorar:*\n${melhoria || 'não informado'}\n\n⚡ *Ação imediata:*\n${parsed.acao_imediata || ''}\n\n_Lead salvo no CRM: fanfave-crm.vercel.app/#crm_`;
+        await enviarWhatsApp('5538999741263', msgManager);
+
+        console.log(`✅ WhatsApp enviado para lead e manager`);
+      } catch (err) {
+        console.warn('Erro ao enviar WhatsApp:', err.message);
+      }
+    })();
+
   } catch (err) {
+    console.error('Erro:', err);
     res.status(500).json({ erro: err.message });
   }
 });
