@@ -88,6 +88,56 @@ Gere o diagnóstico no seguinte formato JSON. Nada além do JSON — sem markdow
 }`;
 }
 
+// ─── CHAMADA À ANTHROPIC COM RETRY ───────────────────────────────────────────
+async function callAnthropic(prompt, tentativas = 3) {
+  let ultimoErro;
+  for (let i = 1; i <= tentativas; i++) {
+    try {
+      console.log(`🤖 Tentativa ${i}/${tentativas} — Anthropic API`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+
+      const resposta = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1200,
+          messages: [{ role: 'user', content: prompt }]
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+
+      if (!resposta.ok) {
+        const dados = await resposta.json();
+        throw new Error(`Status ${resposta.status}: ${JSON.stringify(dados)}`);
+      }
+
+      const dados = await resposta.json();
+      const texto = dados.content?.find(b => b.type === 'text')?.text || '';
+      console.log(`✅ Anthropic respondeu na tentativa ${i}`);
+      return texto;
+
+    } catch (err) {
+      ultimoErro = err;
+      console.warn(`⚠️ Tentativa ${i} falhou: ${err.message}`);
+      if (err.message?.includes('401') || err.message?.includes('403')) break;
+      if (i < tentativas) {
+        const espera = i * 2000;
+        console.log(`⏳ Aguardando ${espera / 1000}s antes da próxima tentativa...`);
+        await new Promise(r => setTimeout(r, espera));
+      }
+    }
+  }
+  throw new Error(`Falha após ${tentativas} tentativas: ${ultimoErro?.message}`);
+}
+
 async function salvarLeadNoCRM({ nome, whatsapp, estabelecimento, tipo, cidade, diagnostico, score, acao_imediata, melhoria }) {
   try {
     const notas = `Score: ${score}/10\n\nDiagnóstico:\n${diagnostico}\n\nAção imediata:\n${acao_imediata}\n\nO que quer melhorar:\n${melhoria || 'não informado'}`;
@@ -119,7 +169,7 @@ async function enviarWhatsApp(numero, mensagem) {
   return data;
 }
 
-app.get('/', (req, res) => res.json({ status: 'ok', servico: 'Fan Fave Diagnóstico', versao: '3.0.0' }));
+app.get('/', (req, res) => res.json({ status: 'ok', servico: 'Fan Fave Diagnóstico', versao: '3.1.0' }));
 
 app.post('/diagnostico', async (req, res) => {
   try {
@@ -127,16 +177,15 @@ app.post('/diagnostico', async (req, res) => {
     if (!nome || !estabelecimento || !cidade || !respostas) return res.status(400).json({ erro: 'Campos obrigatórios: nome, estabelecimento, cidade, respostas' });
 
     const prompt = buildPrompt({ nome, estabelecimento, cidade, melhoria, respostas });
-    const resposta = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1200, messages: [{ role: 'user', content: prompt }] })
-    });
 
-    const dados = await resposta.json();
-    if (!resposta.ok) return res.status(500).json({ erro: 'Erro ao gerar diagnóstico', detalhe: dados });
+    let texto;
+    try {
+      texto = await callAnthropic(prompt);
+    } catch (err) {
+      console.error('Anthropic falhou após retries:', err.message);
+      return res.status(503).json({ erro: 'Serviço de IA temporariamente indisponível. Tente novamente em alguns minutos.', detalhe: err.message });
+    }
 
-    const texto = dados.content?.find(b => b.type === 'text')?.text || '';
     let parsed;
     try { parsed = JSON.parse(texto.replace(/```json|```/g, '').trim()); }
     catch(e) {
