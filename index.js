@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -33,7 +34,6 @@ function buildPrompt(dados) {
   const investimento = labelMap.investimento_aquisicao[r.investimento_aquisicao] || r.investimento_aquisicao;
   const expectativa = labelMap.expectativa[r.expectativa] || r.expectativa;
 
-  // Calcula score base para calibrar a IA
   let scoreBase = 5;
   if (r.conhece_clientes === 'sim_sei_tudo') scoreBase += 2;
   if (r.conhece_clientes === 'nao_sei') scoreBase -= 2;
@@ -45,48 +45,31 @@ function buildPrompt(dados) {
   if (r.investimento_aquisicao === 'nao_invisto') scoreBase -= 1;
   scoreBase = Math.max(2, Math.min(9, scoreBase));
 
-  return `Você é um especialista em fidelização de clientes para negócios de alimentação no Brasil. Você conhece profundamente o comportamento do consumidor em cada segmento — sabe que um bar/boteco tem dinâmica completamente diferente de uma cafeteria, que uma pizzaria tem ticket médio e frequência de visita diferentes de uma lanchonete, e que o perfil de cliente fiel varia muito entre esses contextos.
+  return `Você é especialista em fidelização para food service no Brasil. Gere um diagnóstico direto e específico para ${nome}, dono de ${tipo} em ${cidade}.
 
-REGRAS ABSOLUTAS — LEIA COM ATENÇÃO:
-1. Escreva SEMPRE na PRIMEIRA PESSOA, falando DIRETAMENTE com ${nome}. Use "você", "seu negócio", "sua ${tipo}". NUNCA use o nome dele na terceira pessoa. NUNCA escreva "o ${nome} deve..." ou "${nome} precisa...". SEMPRE "você deve...", "seu negócio precisa...".
-2. Seja ESPECÍFICO para o segmento ${tipo}. Mencione características reais desse tipo de negócio — ticket médio típico, frequência de visita, comportamento do cliente fiel nesse segmento.
-3. O score deve ser CALIBRADO de forma realista. Use ${scoreBase} como referência central. Ajuste de acordo com a combinação de respostas. Um negócio com ${tempo} de operação, que ${conhece.toLowerCase()} e nunca teve sistema formal tem score diferente de um que já tentou e tem base fiel. Seja preciso — scores próximos de 2 ou 9 são extremos e raros.
-4. As ações devem ser CONCRETAS e PRÁTICAS — não genéricas. Diga o que fazer, como fazer, em quanto tempo.
-5. Apresente o Fan Fave como solução ESPECÍFICA para os problemas identificados — não como propaganda genérica. Conecte diretamente o problema diagnosticado à funcionalidade do Fan Fave que resolve.
+REGRAS:
+- Escreva na PRIMEIRA PESSOA falando com ${nome}: "você", "seu negócio". NUNCA "o ${nome} deve..."
+- Seja específico para ${tipo} — ticket médio, frequência, comportamento do cliente fiel nesse segmento
+- Score entre ${scoreBase - 1} e ${scoreBase + 1}
+- Ações práticas e concretas
+- Apresente o Fan Fave (programa de pontos por celular, sem app, R$119,90/mês, ativa em 2 dias) como solução específica para os problemas encontrados
 
-PERFIL COMPLETO DO NEGÓCIO:
-- Responsável: ${nome}
-- Estabelecimento: ${estabelecimento} — ${tipo} em ${cidade}
-- Tempo de operação: ${tempo}
-- Padrão de movimento: ${movimento}
-- Conhecimento da base de clientes: ${conhece}
-- Histórico de fidelização: ${tentativa}
-- Principal dificuldade: ${dificuldade}
-- Investimento mensal em aquisição: ${investimento}
-- Objetivo principal: ${expectativa}
-- O que ${nome} quer melhorar (palavras dele): "${melhoria || 'não informado'}"
+PERFIL:
+- ${estabelecimento} — ${tipo}, ${tempo} de operação, ${cidade}
+- Movimento: ${movimento}
+- Conhece clientes: ${conhece}
+- Já tentou: ${tentativa}
+- Dificuldade: ${dificuldade}
+- Investe em aquisição: ${investimento}
+- Objetivo: ${expectativa}
+- Quer melhorar: "${melhoria || 'não informado'}"
 
-SOBRE O FAN FAVE (use essas informações para conectar com os problemas específicos):
-- Programa de pontos digital para food service
-- Funciona APENAS com o número de celular do cliente — sem app, sem cartão, sem QR code
-- O atendente digita o número no caixa e o ponto é registrado na hora
-- O cliente acumula pontos e recebe notificação automática no WhatsApp quando tem pontos para resgatar
-- O estabelecimento acessa painel completo: quem voltou, quem sumiu, frequência, perfil
-- Funcionalidade de reativação: identifica clientes inativos e permite enviar oferta diretamente
-- Ativação em até 2 dias com treinamento da equipe incluído
-- R$119,90/mês
-
----
-
-Gere o diagnóstico no seguinte formato JSON. Nada além do JSON — sem markdown, sem backticks, sem texto antes ou depois:
-
-{
-  "score": <número de ${scoreBase - 1} a ${scoreBase + 1}, sendo honesto e calibrado para este perfil específico>,
-  "estagio": "<frase curta e direta descrevendo em que estágio de maturidade em fidelização este negócio está — seja específico para o segmento ${tipo}>",
-  "diagnostico": "<4 parágrafos diretos, escritos na PRIMEIRA PESSOA falando com ${nome}:\n\nParágrafo 1: Diagnóstico real do padrão atual de clientes na ${tipo} de ${nome} — interprete as combinações de respostas, não as repita. Conecte o padrão de movimento com o que acontece no caixa em termos concretos.\n\nParágrafo 2: O erro principal de fidelização específico para este tipo de negócio e este perfil. Seja preciso — o que exatamente está fazendo o cliente não voltar ou o negócio não crescer. Traga dados ou referências do segmento ${tipo} para embasar.\n\nParágrafo 3: As consequências reais no caixa — quanto custa esse erro em reais, de forma aproximada, baseado no perfil de investimento e segmento informado.\n\nParágrafo 4: Como o Fan Fave resolve especificamente o problema identificado neste negócio — não genérico, conecte a funcionalidade específica do Fan Fave com a dor específica de ${nome}>",
-  "acao_imediata": "<uma ação ESPECÍFICA e PRÁTICA que ${nome} pode implementar nos próximos 7 dias para começar a resolver o problema principal. Seja tão específico que ele consiga executar sem precisar de mais explicação. Se o Fan Fave for parte da ação, mencione como ele se encaixa. Máximo 3 frases.>"
-}`;
+Responda APENAS com JSON válido:
+{"score":${scoreBase},"estagio":"<1 linha>","diagnostico":"<3 parágrafos diretos na primeira pessoa>","acao_imediata":"<1 ação concreta para 7 dias, máximo 2 frases>"}`;
 }
+
+// ─── CLIENTE ANTHROPIC ────────────────────────────────────────────────────────
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ─── CHAMADA À ANTHROPIC COM RETRY ───────────────────────────────────────────
 async function callAnthropic(prompt, tentativas = 3) {
@@ -94,40 +77,21 @@ async function callAnthropic(prompt, tentativas = 3) {
   for (let i = 1; i <= tentativas; i++) {
     try {
       console.log(`🤖 Tentativa ${i}/${tentativas} — Anthropic API`);
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 55000);
 
-      const resposta = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 900,
-          messages: [{ role: 'user', content: prompt }]
-        }),
-        signal: controller.signal
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 900,
+        messages: [{ role: 'user', content: prompt }]
       });
 
-      clearTimeout(timeout);
-
-      if (!resposta.ok) {
-        const dados = await resposta.json();
-        throw new Error(`Status ${resposta.status}: ${JSON.stringify(dados)}`);
-      }
-
-      const dados = await resposta.json();
-      const texto = dados.content?.find(b => b.type === 'text')?.text || '';
+      const texto = response.content?.find(b => b.type === 'text')?.text || '';
       console.log(`✅ Anthropic respondeu na tentativa ${i}`);
       return texto;
 
     } catch (err) {
       ultimoErro = err;
       console.warn(`⚠️ Tentativa ${i} falhou: ${err.message}`);
-      if (err.message?.includes('401') || err.message?.includes('403')) break;
+      if (err.status === 401 || err.status === 403) break;
       if (i < tentativas) {
         const espera = i * 2000;
         console.log(`⏳ Aguardando ${espera / 1000}s antes da próxima tentativa...`);
