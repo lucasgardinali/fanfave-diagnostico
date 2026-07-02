@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -68,38 +67,25 @@ Responda APENAS com JSON válido:
 {"score":${scoreBase},"estagio":"<1 linha>","diagnostico":"<3 parágrafos diretos na primeira pessoa>","acao_imediata":"<1 ação concreta para 7 dias, máximo 2 frases>"}`;
 }
 
-// ─── CLIENTE ANTHROPIC ────────────────────────────────────────────────────────
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ─── CHAMADA À ANTHROPIC (node-fetch, como o original) ───────────────────────
+async function callAnthropic(prompt) {
+  const resposta = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
 
-// ─── CHAMADA À ANTHROPIC COM RETRY ───────────────────────────────────────────
-async function callAnthropic(prompt, tentativas = 3) {
-  let ultimoErro;
-  for (let i = 1; i <= tentativas; i++) {
-    try {
-      console.log(`🤖 Tentativa ${i}/${tentativas} — Anthropic API`);
-
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 900,
-        messages: [{ role: 'user', content: prompt }]
-      });
-
-      const texto = response.content?.find(b => b.type === 'text')?.text || '';
-      console.log(`✅ Anthropic respondeu na tentativa ${i}`);
-      return texto;
-
-    } catch (err) {
-      ultimoErro = err;
-      console.warn(`⚠️ Tentativa ${i} falhou: ${err.message}`);
-      if (err.status === 401 || err.status === 403) break;
-      if (i < tentativas) {
-        const espera = i * 2000;
-        console.log(`⏳ Aguardando ${espera / 1000}s antes da próxima tentativa...`);
-        await new Promise(r => setTimeout(r, espera));
-      }
-    }
-  }
-  throw new Error(`Falha após ${tentativas} tentativas: ${ultimoErro?.message}`);
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(`Anthropic ${resposta.status}: ${JSON.stringify(dados)}`);
+  return dados.content?.find(b => b.type === 'text')?.text || '';
 }
 
 async function salvarLeadNoCRM({ nome, whatsapp, estabelecimento, tipo, cidade, diagnostico, score, acao_imediata, melhoria }) {
