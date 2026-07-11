@@ -100,11 +100,11 @@ async function callAnthropic(prompt) {
 
 async function salvarLeadNoCRM({ nome, whatsapp, estabelecimento, tipo, cidade, diagnostico, score, acao_imediata, melhoria }) {
   try {
-    const notas = `Score: ${score}/10\n\nDiagnóstico:\n${diagnostico}\n\nAção imediata:\n${acao_imediata}\n\nO que quer melhorar:\n${melhoria || 'não informado'}`;
-    const res = await fetch(`${SOFIA_API}/api/leads`, {
+    const notas = `Score: ${score}/10\n\nAção imediata: ${acao_imediata}`;
+    const res = await fetch(`${SOFIA_API}/api/public/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, whatsapp: whatsapp?.replace(/\D/g, '') || '', estabelecimento, tipo: tipo || 'Food service', cidade: cidade || 'Montes Claros', status: 'novo', origem: 'diagnostico', notas })
+      body: JSON.stringify({ nome, whatsapp: whatsapp?.replace(/\D/g, '') || '', estabelecimento, tipo: tipo || 'Food service', cidade: cidade || 'Montes Claros', origem: 'diagnostico', notas })
     });
     const data = await res.json();
     if (!res.ok && res.status !== 409) console.warn('Aviso CRM:', data.error);
