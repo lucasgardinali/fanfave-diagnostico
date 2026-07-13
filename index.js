@@ -52,8 +52,9 @@ ATENÇÃO AO SEGMENTO: o negócio é "${tipo}". Todas as suas análises, exemplo
 
 REGRAS DE ESCRITA:
 - PRIMEIRA PESSOA, falando direto com ${nome}: "você", "seu negócio". NUNCA "o ${nome}" na terceira pessoa.
-- Traga NÚMEROS REAIS do segmento ${tipo}: ticket médio típico, frequência de visita esperada, quanto vale um cliente fiel vs ocasional, taxa de retorno média do setor.
+- Traga 1 ou 2 NÚMEROS REAIS do segmento ${tipo} (ticket médio, frequência de visita, ou taxa de retorno) — não é preciso citar todos, só o(s) mais relevante(s) pro ponto que você está fazendo.
 - Seja específico e picante — aponte o problema real com franqueza, sem ser genérico.
+- SEJA DIRETO: frases curtas, sem enrolação, sem repetir a mesma ideia de forma diferente.
 - Score entre ${scoreBase - 1} e ${scoreBase + 1}.
 
 DADOS DO NEGÓCIO:
@@ -74,7 +75,7 @@ COMO O FAN FAVE RESOLVE (conecte especificamente com os problemas acima):
 - Ativa em 2 dias, R$119,90/mês
 
 Responda APENAS com JSON válido, sem markdown:
-{"score":${scoreBase},"estagio":"<frase de 1 linha sobre o estágio de maturidade específico deste ${tipo}>","diagnostico":"<3 parágrafos densos e específicos na primeira pessoa. Parágrafo 1: o que os dados revelam sobre a situação real do ${tipo} de ${nome}, com números do segmento. Parágrafo 2: o erro central que está custando dinheiro — seja franco e específico, quantifique a perda. Parágrafo 3: como o Fan Fave resolve exatamente esse problema, conectando funcionalidade com a dor real dele.>","acao_imediata":"<1 ação concreta e específica para os próximos 7 dias, que ${nome} consiga executar sozinho. Máximo 3 frases.>"}`;
+{"score":${scoreBase},"estagio":"<frase de 1 linha sobre o estágio de maturidade específico deste ${tipo}>","diagnostico":"<2 parágrafos curtos (máximo 3 frases cada) na primeira pessoa. Parágrafo 1: o problema real dele — o que os dados revelam + o erro central que está custando dinheiro, com 1 número do segmento pra dar peso. Parágrafo 2: como o Fan Fave resolve exatamente esse problema, conectando funcionalidade com a dor real dele — direto ao ponto, sem repetir o parágrafo 1.>","acao_imediata":"<1 ação concreta e específica para os próximos 7 dias, que ${nome} consiga executar sozinho. Máximo 2 frases.>"}`;
 }
 
 // ─── CHAMADA À ANTHROPIC (node-fetch, como o original) ───────────────────────
